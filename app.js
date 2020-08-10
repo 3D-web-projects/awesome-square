@@ -1,7 +1,7 @@
-let project = (() => {
+
 
     // global variables - within IIFE
-    let pCamera, scene, renderer, sun;
+    let pCamera, scene, renderer, sun, dLight, cube;
     const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
 
     // create camera
@@ -71,51 +71,78 @@ let project = (() => {
         createScene();
         createRenderer();
 
-        // sphere - sun
-        sun = createSphere(10, 32, 32);
-        scene.add(sun);
+        addObjectsToScene();
+        repositionObjects();
 
         gameLoop();
 
-        return{
-            renderer,
-            scene,
-            pCamera
-        }
+    }
+
+    // add objects to the scene
+    let addObjectsToScene =()=> {
+        sun = createSphere(1, 32, 32);
+        scene.add(sun);
+
+        dLight = createDirectionalLight(0xffffff, 10);
+        scene.add(dLight);
+
+        cube = createCube(1, 1, 1);
+        cube.name ='im a cube';
+        scene.add(cube);
+
+        console.log(scene);
+    }
+
+    // reposition objects
+    let repositionObjects =()=> {
+        sun.position.set(9, 6, 0);
+
+        dLight.position.set(0, 3, 0);
+    }
+
+    // create direction light
+    let createDirectionalLight =(color, intensity)=>{
+        let light = new THREE.DirectionalLight(color, intensity);
+        let helper = new THREE.DirectionalLightHelper(light, 3);
+        scene.add(helper);
+        return light;
+    }
+
+    // create cube
+    let createCube =(width, height, depth)=>{
+        let geometry = new THREE.BoxBufferGeometry(width, height, depth),
+            material = new THREE.MeshPhongMaterial({
+                // map: new THREE.TextureLoader().load('./disturb.jpg'),
+                side: THREE.DoubleSide,
+                color: 0x00ffff
+            }),
+            mesh = new THREE.Mesh(geometry, material);
+
+        return mesh;
 
     }
+
 
     // resize
     let resize =()=> {
         let width = window.innerWidth,
             height = window.innerHeight;
 
-        renderer = init;
+        renderer.setSize(width, height);
+        pCamera.aspect = width / height;
+        pCamera.updateProjectionMatrix();
 
-        console.log(renderer);
-
-        // renderer.setSize(width, height);
-        // pCamera.aspect = width / height;
-        // pCamera.updateProjectionMatrix();
     }
-
-    return {
-        init,
-        resize
-    }
-
-
-});
 
 
 // window onload
 window.onload =()=>{
-    project().init();
+    init();
 }
 
 // window resize
 window.onresize =()=> {
-    project().resize();
+    resize();
     console.log("hello")
 }
 
