@@ -4,9 +4,12 @@
     let pCamera, scene, renderer, sun, dLight, cube, ambientLight;
     const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
 
-    // create camera
-    let createCamera =()=> {
+let increasing = true;
+let increasingFactor = 0.02;
+let sunMaxPositionY = 6;
 
+// create camera
+let createCamera = () => {
         // camera set up
         pCamera = new THREE.PerspectiveCamera(
             45,
@@ -47,13 +50,19 @@
         return mesh;
     }
 
-    // add objects to the scene
-    let addObjectsToScene =()=> {
-        sun = createSphere(1, 32, 32);
+// add objects to the scene
+let addObjectsToScene = () => {
+  // create sun
+  sun = createSphere(1, 32, 32);
+  let lightDirection;
+  lightDirection = [0.1, 0, 0];
+  dLight = createDirectionalLight(0xfff000, 1, lightDirection);
+  sun.add(dLight.light);
+  // END create sun
 
-        dLight = createDirectionalLight(0xfff000, 1);
-        sun.add(dLight);
-        scene.add(sun);
+  scene.add(dLight.helper);
+
+  scene.add(sun);
 
 
         cube = createCube(3, 3, 3);
@@ -66,20 +75,23 @@
         console.log(scene);
     }
 
-    // reposition objects
-    let repositionObjects =()=> {
-        sun.position.set(0, 6, 0);
+// reposition objects
+let repositionObjects = () => {
+  sun.position.set(5, 6, 5);
+  cube.rotation.x -= 1;
+};
 
-        dLight.position.set(0, 3, 7);
-    }
-
-    // create direction light
-    let createDirectionalLight =(color, intensity)=>{
-        let light = new THREE.DirectionalLight(color, intensity);
-        let helper = new THREE.DirectionalLightHelper(light, 5);
-        scene.add(helper);
-        return light;
-    }
+// create direction light
+let createDirectionalLight = (color, intensity, direction) => {
+  let light = new THREE.DirectionalLight(color, intensity);
+  light.shadowCameraVisible = true;
+  light.castShadow = true;
+  if (direction) {
+    light.position.set(...direction);
+  }
+  let helper = new THREE.DirectionalLightHelper(light, 3);
+  return { light, helper };
+};
 
     // create ambient light
     let createAmbientLight =(color, intensity)=> {
@@ -87,22 +99,33 @@
         return light;
     }
 
-    // create cube
-    let createCube =(width, height, depth)=>{
-        let geometry = new THREE.BoxBufferGeometry(width, height, depth),
-            material = new THREE.MeshPhongMaterial({
-                map: new THREE.TextureLoader().load('./metal.jpg'),
-                side: THREE.DoubleSide
-            }),
-            mesh = new THREE.Mesh(geometry, material);
+// create cube
+let createCube = (width, height, depth) => {
+  let geometry = new THREE.BoxBufferGeometry(width, height, depth),
+    material = new THREE.MeshPhongMaterial({
+      map: new THREE.TextureLoader().load("./metal.jpg"),
+    }),
+    mesh = new THREE.Mesh(geometry, material);
 
-        return mesh;
+  return mesh;
+};
+
+updateSun = () => {
+  if (sun.position.y > sunMaxPositionY) {
+    increasing = false;
+  }
+  if (sun.position.y < -sunMaxPositionY) {
+    increasing = true;
+  }
+  sun.position.y += (increasing ? 1 : -1) * increasingFactor;
+  dLight.helper.update();
+};
 
     }
 
     // update
     let update =()=> {
-        sun.rotation.y += 0.01;
+  updateSun();
     }
 
     // render
