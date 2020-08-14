@@ -121,7 +121,6 @@ updateSun = () => {
   dLight.helper.update();
 };
 
-    }
 
     // update
     let update =()=> {
